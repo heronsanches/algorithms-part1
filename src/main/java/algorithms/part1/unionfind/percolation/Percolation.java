@@ -1,6 +1,8 @@
 package algorithms.part1.unionfind.percolation;
 
+import algorithms.part1.unionfind.TxtUtils;
 import edu.princeton.cs.algs4.WeightedQuickUnionUF; 
+import java.util.Scanner;
 
 
 /**
@@ -160,7 +162,7 @@ public class Percolation {
    }
    
    
-   /*public static void main(String[] args){   // test client (optional)
+   public static void main(String[] args){   // test client (optional)
       
       TxtUtils txtUtils = new TxtUtils(args[0]);
       Scanner input = txtUtils.getInput();
@@ -172,7 +174,7 @@ public class Percolation {
       
       System.out.println("Percolates? "+perc.percolates());
       
-   }*/
+   }
 
 
 }

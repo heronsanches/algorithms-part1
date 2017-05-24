@@ -7,7 +7,7 @@ package algorithms.part1.unionfind.percolation;
 public class PercolationStats {
 
    
-   public PercolationStats(int n, int trials){ //perform trials independent experiments on an n-by-n grid
+   /*public PercolationStats(int n, int trials){ //perform trials independent experiments on an n-by-n grid
       //TODO
    }
    
@@ -34,7 +34,7 @@ public class PercolationStats {
    
    public static void main(String[] args){ // test client (described below)
       //TODO
-   }
+   }*/
    
    
 }
