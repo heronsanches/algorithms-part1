@@ -19,12 +19,16 @@ import java.util.Scanner;
  */
 public class Percolation {
 
-   private final WeightedQuickUnionUF wqupc;
+   private final WeightedQuickUnionUF wqu;
    private final int n;
    
    /**It indicates sites opened and blocked. 0: blocked, 1:opened.*/
    private int sites[];
    private int qttOpenSites;
+   private final int bottomStart;
+   private final int upperStart;
+   private final int topVirtualSite;
+   private final int bottomVirtualSite; //n*n+1
    
    
    public Percolation(int n){ // create n-by-n grid, with all sites blocked
@@ -33,33 +37,46 @@ public class Percolation {
          throw new IllegalArgumentException();
       
       this.n = n;
-      this.wqupc = new WeightedQuickUnionUF(n * n);
-      this.sites = new int[n * n];
-      
-      for(int i=0; i<this.sites.length; i++) //initializes all sites blocked, 0:blocked, 1:open
-         sites[i] = 0;
+      this.upperStart = 1;
+      this.bottomStart = calculatesIndex(n, 1);
+      this.wqu = new WeightedQuickUnionUF(n * n + 2); //added 2 virtual sites, so the algorithm has to work from 1 to n*n real indexes, 0 and n*n+1 are the virtual sites
+      this.sites = new int[n * n + 2];
+      this.topVirtualSite = 0;
+      this.bottomVirtualSite = sites.length - 1;
    
    }
    
    
-   /**Calculates the correct index of the primitive int Java Array (with one dimension) - index from 0 to n-1, based on a virtual nxn grid, where row and column indices are integers from 1 to n.*/
+   /**Calculates the correct index of the primitive int Java Array (with one dimension) - index from 0 to n+1, based on a nxn grid, where row and column indices are integers from 1 to n.*/
    private int calculatesIndex(int row, int col){
-      return n*(row - 1) + (col - 1);
+      return n*(row - 1) + col;
    }
    
    
-   /**A site is open */
    public void open(int row, int col){ // open site (row, col) if it is not open already
       
       if(row < 1 || col < 1 || row > n || col > n)
          throw new IndexOutOfBoundsException();
-      
+            
       int site = calculatesIndex(row, col);
+      //System.out.println("site: "+site);
       
       if(sites[site] == 0){ //not opened
          
          sites[site] = 1; //open
          qttOpenSites++;
+
+         
+         if(site >= bottomStart){ //bottom sites
+            
+            wqu.union(site, bottomVirtualSite); //connect to the virtual bottom site
+            
+            if(n == 1)
+               wqu.union(site, topVirtualSite);
+            
+         }else if(site >= upperStart && site <= n){ //upper sites
+            wqu.union(site, topVirtualSite); //connect to the virtual upper site
+         }
          
          //*****verify if the there are neighborhhoods opened and so connect to them*****
          if(col+1 <= n){ //right neighboor
@@ -67,7 +84,7 @@ public class Percolation {
             int right = calculatesIndex(row, col+1);
             
             if(sites[right] == 1)
-               wqupc.union(site, right);
+               wqu.union(site, right);
          
          }
          
@@ -76,7 +93,7 @@ public class Percolation {
             int left = calculatesIndex(row, col-1);
             
             if(sites[left] == 1)
-               wqupc.union(site, left);
+               wqu.union(site, left);
          
          }
          
@@ -85,7 +102,7 @@ public class Percolation {
             int up = calculatesIndex(row-1, col);
             
             if(sites[up] == 1)
-               wqupc.union(site, up);
+               wqu.union(site, up);
          
          }
          
@@ -94,7 +111,7 @@ public class Percolation {
             int bottom = calculatesIndex(row+1, col);
             
             if(sites[bottom] == 1)
-               wqupc.union(site, bottom);
+               wqu.union(site, bottom);
          
          }
          //*****END*****verify if the there are neighborhhoods opened and so connect to them*****
@@ -121,15 +138,9 @@ public class Percolation {
       if(row < 1 || col < 1 || row > n || col > n)
          throw new IndexOutOfBoundsException();
       
-      if(isOpen(row, col)){
-         
-         int site = calculatesIndex(row, col);
-         
-         for(int i=0; i<n; i++) //top sites
-            if(wqupc.connected(site, i))
-               return true;
-         
-      }
+      if(isOpen(row, col))
+         if(wqu.connected(calculatesIndex(row, col), topVirtualSite))
+            return true;
       
       return false;
    
@@ -144,18 +155,8 @@ public class Percolation {
    /**The system percolates if there is a path from a site located on the most bottom to the most top.*/
    public boolean percolates(){ // does the system percolate?
       
-      int limit = calculatesIndex(n, n) + 1;
-      
-      for(int i=calculatesIndex(n, 1); i<limit; i++){ //bottom sites
-         
-         if(sites[i] == 0) //not opened
-            continue;
-         
-         for(int j=0; j<n; j++) //top sites
-            if( sites[j] == 1 && wqupc.connected(i, j))
-               return true;
-         
-      }
+      if(wqu.connected(topVirtualSite, bottomVirtualSite))
+         return true;
       
       return false;
       
@@ -168,12 +169,23 @@ public class Percolation {
       Scanner input = txtUtils.getInput();
       
       Percolation perc = new Percolation(input.nextInt());
+      int row;
+      int col;
       
-      while(input.hasNext())
-         perc.open(input.nextInt(), input.nextInt());
-      
-      System.out.println("Percolates? "+perc.percolates());
-      
+      while(input.hasNext()){
+         
+         row = input.nextInt();
+         col = input.nextInt();
+         perc.open(row, col);
+         System.out.println("row: "+row+" column: "+col);
+         System.out.println("isopen? "+perc.isOpen(row, col));
+         System.out.println("percolates? "+perc.percolates());
+         System.out.println("n opened sites: "+perc.numberOfOpenSites());
+         System.out.println("isFull? "+perc.isFull(row, col));
+         System.out.println();
+
+      }
+            
    }
 
 
